@@ -10,20 +10,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           submodules: recursive
-      - name: Setup JDK 17
+      - name: Setup JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
           cache: gradle
       - name: Build
         run: |
-          export SDKM=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager
+          SDKM=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager
           yes | $SDKM --licenses || true
           $SDKM "platform-tools"
-          $SDKM "platforms;android-34"
-          $SDKM "build-tools;34.0.0"
+          $SDKM "platforms;android-36"
+          $SDKM "build-tools;36.0.0"
+          $SDKM "ndk;29.0.14206865"
+          $SDKM "cmake;3.22.1"
+          git submodule update --init --recursive
+          ls api
+          keytool -genkeypair -v -keystore $GITHUB_WORKSPACE/debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          echo "signing.storeFile=$GITHUB_WORKSPACE/debug.keystore" >> local.properties
+          echo "signing.storePassword=android" >> local.properties
+          echo "signing.keyAlias=androiddebugkey" >> local.properties
+          echo "signing.keyPassword=android" >> local.properties
           chmod +x gradlew
           ./gradlew :manager:assembleDebug --stacktrace
       - name: Upload APK
