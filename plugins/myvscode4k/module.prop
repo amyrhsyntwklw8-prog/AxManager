@@ -1,0 +1,7 @@
+id=myvscode4k
+name=My VSCode 4K
+version=v1.0
+versionCode=1
+author=amir
+description=VSCode 4K with shell and python, app vs system mode
+axeronPlugin=30000
