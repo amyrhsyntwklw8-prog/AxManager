@@ -17,14 +17,13 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: gradle
-      - name: Install SDK packages
-        run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platform-tools"
-          sdkmanager "platforms;android-34"
-          sdkmanager "build-tools;34.0.0"
       - name: Build
         run: |
+          export SDKM=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager
+          yes | $SDKM --licenses || true
+          $SDKM "platform-tools"
+          $SDKM "platforms;android-34"
+          $SDKM "build-tools;34.0.0"
           chmod +x gradlew
           ./gradlew :manager:assembleDebug --stacktrace
       - name: Upload APK
