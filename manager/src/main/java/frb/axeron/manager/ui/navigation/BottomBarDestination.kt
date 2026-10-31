@@ -1,8 +1,8 @@
+package frb.axeron.manager.ui.navigation
+
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.outlined.Code
 import com.ramcosta.composedestinations.generated.destinations.VscodeSimScreenDestination
-package frb.axeron.manager.ui.navigation
-
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Extension
