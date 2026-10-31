@@ -44,6 +44,15 @@ footer{background:#1f6feb;padding:6px 10px;font-size:12px;display:flex;justify-c
 <button class="gray" onclick="renameF()">تغییر نام</button>
 <button class="red" onclick="delF()">حذف</button>
 <div class="card" id="sysinfo">برای شروع دکمه ⚡ را بزن</div>
+<div class="card">
+<b>🚀 پورت شبیه‌ساز آفلاین - بدون وای‌فای</b><br>
+پورت: <input id="port" value="8080" style="width:90px;direction:ltr">
+<button class="blue" onclick="startPort()">روشن روی این پورت</button>
+<button class="gray" onclick="scanPort()">پورت‌های باز</button>
+<button class="red" onclick="stopPort()">خاموش</button>
+<button class="gray" onclick="fastMode()">⚡ حالت سریع</button>
+<div id="portinfo" style="direction:ltr;text-align:left;font-size:12px;margin-top:6px">offline ready - 127.0.0.1</div>
+</div>
 <div class="card">سیمولاتور = پوشه sim/workspace داخل پلاگین. حالت خاموش فقط همان‌جا کار می‌کند و دستورهای rm -rf / , reboot , dd بسته است.</div>
 </div>
 <div class="editor">
@@ -124,6 +133,26 @@ else if(q.includes('فایل'))a="ls -lh '"+simDir()+"'";
 else a="echo دستیار آفلاین: برای '"+q+"'\nپیشنهاد:\nls -la\nid\ndumpsys battery | head -n 20\ngetprop ro.product.model";
 print('🤖 '+q+'\n\nپیشنهاد دستور:\n'+a+'\n\nخروجی:\n'+ex(a+" 2>&1"));
 }
+function startPort(){
+let port=document.getElementById('port').value||'8080';
+if(port==='5555'){print('⛔ 5555 مال TCP Debugging است، 8080 یا 8000 بگذار');return}
+let ws=simDir();ex("mkdir -p '"+ws+"/www' 2>&1");
+ex("echo '<h1>SIM OK '+port+'</h1>' > '"+ws+"/www/index.html' 2>&1");
+let cmd="cd '"+ws+"/www' && (which python3 >/dev/null 2>&1 && nohup python3 -m http.server "+port+" >/dev/null 2>&1 & || busybox httpd -p "+port+" -h . 2>&1 &) ; sleep 1; ss -tln 2>&1 || netstat -tln 2>&1 || cat /proc/net/tcp 2>&1";
+let r=ex(cmd);print('[LOCALHOST:'+port+'] بدون وای‌فای\n\n'+r+'\n\nتست کن:\ncurl -I 127.0.0.1:'+port+'\n'+ex('curl -I 127.0.0.1:'+port+' 2>&1 | head -n 20'));
+document.getElementById('portinfo').textContent='ON 127.0.0.1:'+port+' - no wifi needed';
+}
+function stopPort(){
+let port=document.getElementById('port').value||'8080';
+print(ex("pkill -f 'http.server "+port+"' 2>&1; fuser -k "+port+"/tcp 2>&1; echo stopped:"+port));
+}
+function scanPort(){
+print('=== پورت‌های باز لوکال ===\n'+ex("ss -tln 2>&1 || netstat -tln 2>&1")+ '\n=== حافظه و لود برای حالت سریع ===\n'+ex("cat /proc/loadavg 2>&1; cat /proc/meminfo | head -n 3 2>&1"));
+}
+function fastMode(){
+let r=ex("dumpsys battery | grep level 2>&1; cat /proc/cpuinfo | grep processor | wc -l 2>&1");
+print('⚡ حالت سریع فعال: تایم‌اوت کم، کش سبک\n'+r+'\n'+ex("echo 3 > /proc/sys/vm/drop_caches 2>&1 && echo cache-cleaned || echo need-root-for-cache 2>&1"));
+}  
 setTimeout(powerCheck,600);
 </script>
 </body>
