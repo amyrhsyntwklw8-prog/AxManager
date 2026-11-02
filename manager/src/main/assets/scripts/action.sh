@@ -400,6 +400,95 @@ fi
 #通用GPU渲染优化（全机型通用不变）
 settings put global debug.hwui.disable_hw_layers 1 2>/dev/null
 settings put global persist.hwui.msaa 1 2>/dev/null
+get_tys() {
+    max_rate=$(dumpsys display 2>/dev/null | grep -Eo 'refreshRate[= ]*[0-9.]+' | grep -Eo '[0-9.]+' | sort -n | tail -1)
+    [ -z "$max_rate" ] && max_rate=$(settings get system peak_refresh_rate 2>/dev/null)
+    [ -z "$max_rate" ] || [ "$max_rate" = "null" ] && max_rate=120.0
+    tys=$(printf "%.0f" "$max_rate")
+    [ "$tys" -lt 60 ] && tys=60
+    [ "$tys" -gt 240 ] && tys=240
+    echo "$tys"
+}
+
+brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
+echo "品牌：$brand"
+
+settings put global window_animation_scale 0.35
+settings put global transition_animation_scale 0.35
+settings put global animator_duration_scale 0.35
+
+settings put global force_gpu_rendering 1
+setprop debug.sf.hw 1 2>/dev/null
+echo "GPU 加速~"
+
+tys=$(get_tys)
+settings put system peak_refresh_rate "$tys"
+settings put system min_refresh_rate "$tys"
+setprop persist.graphics.fps.limit "$tys" 2>/dev/null
+echo "帧率锁死 $tys Hz"
+
+setprop debug.sf.vsync_reactor 0 2>/dev/null
+echo "垂直同步关闭"
+
+case "$brand" in
+    xiaomi|redmi)
+        settings put system touch_mode 2
+        settings put system touch_sensitivity 1
+        pm disable --user 0 com.miui.analytics 2>/dev/null
+        pm disable --user 0 com.miui.msa.global 2>/dev/null
+        echo "红米触控&广告冻结"
+        ;;
+    vivo|iqoo)
+        settings put system power_save_type 7
+        settings put secure power_save_type 7
+        settings put secure system_property_power_mode_type 7
+        settings put system game_plus_mode_key 1
+        settings put system smart_touch_mode 0
+        settings put system game_scene_more_fps 1
+        settings put system bench_mark_mode 1
+        settings put secure vivo_sync_game_switch_status "*"
+        settings put system vivo_game_gyro_dealy_promotion "*"
+        settings put system vivo_game_gyro_anti_shake_promotion "*"
+        pm disable --user 0 com.vivo.pem 2>/dev/null
+        pm disable --user 0 com.vivo.eas 2>/dev/null
+        echo "vivoiqoo 增强plus哦😮"
+        ;;
+    oppo|oneplus|realme)
+        settings put system touch_sensitivity 1
+        settings put system power_mode high
+        pm disable --user 0 com.oplus.cosa 2>/dev/null
+        pm disable --user 0 com.oplus.athena 2>/dev/null
+        echo "OPPO 性能&触控"
+        ;;
+    honor|huawei)
+        settings put system touch_screen_optimization 1
+        settings put system power_mode 2
+        pm disable --user 0 com.huawei.powergenie 2>/dev/null
+        echo "华为触控&性能"
+        ;;
+    samsung)
+        settings put system touch_sensitivity_mode 1
+        settings put global sem_perf_mode 1
+        pm disable --user 0 com.samsung.android.game.gametools 2>/dev/null
+        echo "三星触控&性能"
+        ;;
+    *)
+        settings put global high_performance_mode 1
+        echo "通用性能增强"
+        ;;
+esac
+
+svc nfc disable 2>/dev/null
+pm disable --user 0 com.android.printspooler 2>/dev/null
+echo "NFC
+
+TYSNB="/data/user_de/0/com.android.shell/axeron/plugins/xnPro+/service.sh"
+if [ -f "$TYSNB" ]; then
+    pkill -f "$TYSNB" 2>/dev/null
+    nohup sh "$TYSNB" >/dev/null 2>&1 &
+    echo "暴力 PID $!"
+fi
+echo "撸完了"
 
 
 
