@@ -122,3 +122,35 @@ fi
 cmd notification post -t "全性能模块" "卸载成功" "缓存已清空，极致模式关闭、云控/温控/触控/动画全部恢复出厂" >/dev/null 2>&1
 
 echo "✅模块彻底卸载完毕：全部参数回归原厂系统默认"
+TYSNB="/data/user_de/0/com.android.shell/axeron/plugins/gamepro"
+NBYSG_SH="$TYSNB/service.sh"
+pkill -f "$NBYSG_SH" 2>/dev/null
+
+settings delete system peak_refresh_rate 2>/dev/null
+settings delete system min_refresh_rate 2>/dev/null
+
+settings delete system touch_mode 2>/dev/null
+settings delete system touch_sensitivity 2>/dev/null
+
+settings put system power_save_type 0 2>/dev/null
+settings put secure power_save_type 0 2>/dev/null
+settings put secure system_property_power_mode_type 0 2>/dev/null
+settings put system game_plus_mode_key 0 2>/dev/null
+settings put system smart_touch_mode 1 2>/dev/null
+settings delete system game_scene_more_fps 2>/dev/null
+settings delete system bench_mark_mode 2>/dev/null
+
+settings delete system touch_screen_optimization 2>/dev/null
+settings delete system tLOCK_FILE="/data/local/tmp/burnengine_x.lock"
+if [ -f "$LOCK_FILE" ]; then
+    pid=$(head -1 "$LOCK_FILE" 2>/dev/null | cut -d: -f1)
+    [ -n "$pid" ] && kill "$pid" 2>/dev/null
+    rm -f "$LOCK_FILE"
+fi
+
+for key in game_mode performance_mode high_performance_mode_on \
+           POWER_PERFORMANCE_MODE_OPEN performance_mode_auto \
+           speed_mode game_bypass_charge oplus_touch_optimization \
+   ouch_sensitivity_mode 2>/dev/null
+
+echo "驱动跑完了"
