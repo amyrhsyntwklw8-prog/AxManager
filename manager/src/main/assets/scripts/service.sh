@@ -33,3 +33,45 @@ echo "[$(date)] 当前前台应用:${CUR_APP}" >>${LOG_PATH}
 
 #固定休眠3秒
 sleep 3
+get_tys() {
+    max_rate=$(dumpsys display 2>/dev/null | grep -Eo 'refreshRate[= ]*[0-9.]+' | grep -Eo '[0-9.]+' | sort -n | tail -1)
+    [ -z "$max_rate" ] && max_rate=$(settings get system peak_refresh_rate 2>/dev/null)
+    [ -z "$max_rate" ] || [ "$max_rate" = "null" ] && max_rate=120.0
+    tys=$(printf "%.0f" "$max_rate")
+    [ "$tys" -lt 60 ] && tys=60
+    [ "$tys" -gt 240 ] && tys=240
+    echo "$tys"
+}
+
+while true; do
+    tys=$(get_tys)
+    brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
+
+    settings put system peak_refresh_rate "$tys" 2>/dev/null
+    settings put system min_refresh_rate "$tys" 2>/dev/null
+
+    case "$brand" in
+        xiaomi|redmi)
+            settings put system touch_mode 2 2>/dev/null
+            settings put system touch_sensitivity 1 2>/dev/null
+            ;;
+        vivo|iqoo)
+            settings put system power_save_type 7 2>/dev/null
+            settings put secure power_save_type 7 2>/dev/null
+            settings put secure system_property_power_mode_type 7 2>/dev/null
+            settings put system game_plus_mode_key 1 2>/dev/null
+            settings put system smart_touch_mode 0 2>/dev/null
+            settings put system game_scene_more_fps 1 2>/dev/null
+            settings put system bench_mark_mode 1 2>/dev/null
+            ;;
+        oppo|oneplus|realme)
+            settings put system touch_sensitivity 1 2>/dev/null
+            ;;
+        honor|huawei)
+            settings put system touch_screen_optimization 1 2>/dev/null
+            ;;
+        samsung)
+            settings put system touch_sensitivity_mode 1 2>/dev/null
+            ;;
+    esac
+    sleep 10
