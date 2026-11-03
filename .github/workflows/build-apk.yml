@@ -15,8 +15,11 @@ jobs:
           java-version: 21
       - name: Install Android packages
         run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls $ANDROID_HOME/cmdline-tools
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
-          yes | sdkmanager --licenses || true
+          yes | sdkmanager --licenses > /dev/null || true
       - name: Build APK
         run: |
           chmod +x gradlew
