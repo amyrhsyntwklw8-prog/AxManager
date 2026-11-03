@@ -43,7 +43,7 @@ android {
         abi {
             isEnable = splitAbis
             reset()
-            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            include("arm64-v8a")
             isUniversalApk = true
         }
     }
