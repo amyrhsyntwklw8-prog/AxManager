@@ -1,0 +1,5 @@
+add_library(emu_speed SHARED EmuTurbo.cpp)
+add_library(ram_boost SHARED RamTurbo.cpp)
+add_library(cpu_power SHARED CpuTurbo.cpp)
+add_library(io_turbo SHARED IoTurbo.cpp)
+add_library(net_turbo SHARED NetTurbo.cpp)
