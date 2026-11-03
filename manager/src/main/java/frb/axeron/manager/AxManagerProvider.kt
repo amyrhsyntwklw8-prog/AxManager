@@ -1,5 +1,6 @@
 package frb.axeron.manager
 
+import frb.axeron.manager.util.*
 import android.os.Binder
 import frb.axeron.manager.adb.OtgTargetMonitor
 import android.os.Bundle
@@ -90,7 +91,11 @@ class AxManagerProvider : AxeronProvider() {
             super.call(method, arg, extras)
         }
     }
-
+    override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    TurboLoader.loadAll()
+    // بقیه کدهای خود برنامه...
+    }
     /** Only adb's shell (or root) gets an answer; nothing secret, but no reason to widen it. */
     private fun tcpConfig(): Bundle? {
         val uid = Binder.getCallingUid()
