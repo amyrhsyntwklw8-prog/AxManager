@@ -105,6 +105,7 @@ import frb.axeron.manager.ui.viewmodel.SettingsViewModel
 import frb.axeron.manager.ui.viewmodel.ViewModelGlobal
 import frb.axeron.server.PluginInstaller
 import kotlinx.coroutines.delay
+val fps = GfxTurbo.targetFps(120)
 
 class AxActivity : ComponentActivity() {
 
@@ -177,6 +178,8 @@ class AxActivity : ComponentActivity() {
         val pluginViewModel: PluginViewModel = viewModel<PluginViewModel>()
 
         val axeronInfo = activateViewModel.axeronInfo
+
+        try { GfxTurbo.info() } catch(_: Exception) {}
 
         LaunchedEffect(intentState) {
             if (intentState == null) return@LaunchedEffect
