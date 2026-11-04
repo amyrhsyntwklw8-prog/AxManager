@@ -1,28 +1,32 @@
 name: Build Debug APK
 on:
- workflow_dispatch:
+  workflow_dispatch:
 jobs:
- build:
- runs-on: ubuntu-latest
- timeout-minutes: 30
- steps:
- - uses: actions/checkout@v4
- with:
- submodules: recursive
- - uses: actions/setup-java@v4
- with:
- distribution: temurin
- java-version: 21
- - name: Install Android packages
- run: |
- export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
- sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
- yes | sdkmanager --licenses > /dev/null || true
- - name: Build APK
- run: |
- chmod +x gradlew
-./gradlew:manager:assembleDebug --stacktrace --no-daemon
- - uses: actions/upload-artifact@v4
- with:
- name: app-debug
- path: manager/build/outputs/apk/debug/*.apk
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install Android packages
+        run: |
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          yes | sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
+          yes | sdkmanager --licenses > /dev/null || true
+
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew :manager:assembleDebug --stacktrace --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: manager/build/outputs/apk/debug/*.apk
