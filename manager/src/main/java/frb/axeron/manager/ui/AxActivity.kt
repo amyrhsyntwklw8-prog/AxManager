@@ -114,9 +114,8 @@ class AxActivity : ComponentActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    TurboLoader.loadAll()
-    try { GfxTurbo.info() } catch(_: Exception) {}
-    // بقیه کدهای خود برنامه...
+    // TurboLoader.loadAll()
+    // try { GfxTurbo.info() } catch(_: Exception) {}
     }
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
