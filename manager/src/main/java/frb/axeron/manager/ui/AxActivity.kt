@@ -1,6 +1,5 @@
 package frb.axeron.manager.ui
 
-import frb.axeron.manager.util.*
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -105,18 +104,13 @@ import frb.axeron.manager.ui.viewmodel.SettingsViewModel
 import frb.axeron.manager.ui.viewmodel.ViewModelGlobal
 import frb.axeron.server.PluginInstaller
 import kotlinx.coroutines.delay
-val fps = GfxTurbo.targetFps(120)
 
 class AxActivity : ComponentActivity() {
 
     companion object {
         const val OPEN_QUICK_SHELL = "AxManager.QUICK_SHELL"
     }
-    override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    // TurboLoader.loadAll()
-    // try { GfxTurbo.info() } catch(_: Exception) {}
-    }
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
     }
@@ -146,8 +140,6 @@ class AxActivity : ComponentActivity() {
 
         ShortcutManagerCompat.pushDynamicShortcut(this@AxActivity, shortcut)
 
-        // Only a fresh start: after a recreate (rotation, theme change) the intent was already
-        // handled, and handling a VIEW again would flash the same zip a second time.
         if (savedInstanceState == null) intentState = intent
 
         setContent {
@@ -178,8 +170,6 @@ class AxActivity : ComponentActivity() {
 
         val axeronInfo = activateViewModel.axeronInfo
 
-        try { GfxTurbo.info() } catch(_: Exception) {}
-
         LaunchedEffect(intentState) {
             if (intentState == null) return@LaunchedEffect
             Log.i("AxActivity", "intent: $intentState")
@@ -198,8 +188,6 @@ class AxActivity : ComponentActivity() {
                 }
 
                 Intent.ACTION_VIEW -> {
-                    // The intent being handled: with singleTask a VIEW often arrives through
-                    // onNewIntent, while `intent` is still the one that first created the activity.
                     val view = intentState!!
                     if (view.data?.scheme == "content") {
                         zipUri =
@@ -234,17 +222,12 @@ class AxActivity : ComponentActivity() {
             intentState = null
         }
 
-        // Reload only when the server process changes, not on every AxeronInfo emission.
         val serverProcess = axeronInfo.serverInfo.uid to axeronInfo.serverInfo.pid
         LaunchedEffect(serverProcess) {
             if (axeronInfo.isRunning()) {
-                // pluginViewModel is prioritized because of BottomBar badge
                 pluginViewModel.fetchModuleList()
-
-                // Stagger other loads to avoid UI stutter during startup/navigation
                 delay(500)
                 appsViewModel.loadInstalledApps()
-
                 delay(500)
                 privilegeViewModel.loadInstalledApps()
             }
@@ -261,8 +244,8 @@ class AxActivity : ComponentActivity() {
         }
 
         val showBottomBar = when (currentDestination?.route) {
-            ActivateScreenDestination.route -> false // Hide for Activate
-            FlashScreenDestination.route -> false // Hide for Flash and plugin actions
+            ActivateScreenDestination.route -> false
+            FlashScreenDestination.route -> false
             else -> true
         }
 
@@ -280,7 +263,6 @@ class AxActivity : ComponentActivity() {
                     LocalFloatingBarFabHost provides fabHost,
                 ) {
                     DestinationsNavHost(
-                        // Full-bleed content; the floating bar overlays it and each screen adds its own bottom inset.
                         modifier = Modifier.padding(innerPadding),
                         navGraph = NavGraphs.root,
                         navController = navController,
@@ -292,22 +274,15 @@ class AxActivity : ComponentActivity() {
                                 get() = {
                                     val initialState = initialState.destination.route
                                     val targetState = targetState.destination.route
-
-                                    // Cari indeks destinasi di BottomBar
                                     val initialIndex = BottomBarDestination.entries.find { it.direction.route == initialState }?.ordinal ?: -1
                                     val targetIndex = BottomBarDestination.entries.find { it.direction.route == targetState }?.ordinal ?: -1
-
                                     if (initialIndex != -1 && targetIndex != -1) {
-                                        // Jika pindah antar tab BottomBar
                                         if (targetIndex > initialIndex) {
-                                            // Geser ke kiri (masuk dari kanan)
                                             slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300)) + fadeIn()
                                         } else {
-                                            // Geser ke kanan (masuk dari kiri)
                                             slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(300)) + fadeIn()
                                         }
                                     } else {
-                                        // Animasi default jika bukan antar tab (misal masuk ke detail)
                                         fadeIn(animationSpec = tween(300))
                                     }
                                 }
@@ -316,16 +291,12 @@ class AxActivity : ComponentActivity() {
                                 get() = {
                                     val initialState = initialState.destination.route
                                     val targetState = targetState.destination.route
-
                                     val initialIndex = BottomBarDestination.entries.find { it.direction.route == initialState }?.ordinal ?: -1
                                     val targetIndex = BottomBarDestination.entries.find { it.direction.route == targetState }?.ordinal ?: -1
-
                                     if (initialIndex != -1 && targetIndex != -1) {
                                         if (targetIndex > initialIndex) {
-                                            // Keluar ke kiri
                                             slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300)) + fadeOut()
                                         } else {
-                                            // Keluar ke kanan
                                             slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300)) + fadeOut()
                                         }
                                     } else {
@@ -351,20 +322,12 @@ class AxActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.BottomCenter
                     ) {
-                        // Soft fade behind the pill, down through the system nav bar, mirroring
-                        // the top bar's gradient. Sized from the pill row only, so FABs stacking
-                        // up (e.g. re-ignite) never resize it.
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(bottomBarHeight + navBarInset)
                                 .background(bottomBarFadeBrush(MaterialTheme.colorScheme.background))
                         )
-
-                        // Pill and the page's FABs form one centered group on a shared bottom
-                        // baseline. No animateContentSize here: it lays content out from the top,
-                        // which made the bottom-anchored pill jump whenever the FAB stack resized.
-                        // The FAB slot animates its own width, so the pill glides to re-center.
                         Row(
                             modifier = Modifier
                                 .navigationBarsPadding()
@@ -376,8 +339,6 @@ class AxActivity : ComponentActivity() {
                                 navigator,
                                 activateViewModel.axeronInfo,
                                 pluginViewModel.pluginUpdateCount,
-                                // Screens pad for the pill row only (+12dp above and below);
-                                // extra stacked FABs float over content like a normal FAB.
                                 modifier = Modifier.onSizeChanged {
                                     bottomBarHeight = with(density) { it.height.toDp() } + 24.dp
                                 }
@@ -398,11 +359,9 @@ class AxActivity : ComponentActivity() {
         moduleUpdateCount: Int,
         modifier: Modifier = Modifier
     ) {
-        // Icon-only pill, 56dp tall to match a FAB. Labels show as a tooltip on long-press.
         Surface(
             modifier = modifier,
             shape = CircleShape,
-            // Tonal secondary so the bar stands apart from the surfaceContainerHigh cards behind it.
             color = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             shadowElevation = 8.dp
