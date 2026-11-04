@@ -111,7 +111,12 @@ class AxActivity : ComponentActivity() {
     companion object {
         const val OPEN_QUICK_SHELL = "AxManager.QUICK_SHELL"
     }
-
+    override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    TurboLoader.loadAll()
+    try { GfxTurbo.info() } catch(_: Exception) {}
+    // بقیه کدهای خود برنامه...
+    }
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
     }
