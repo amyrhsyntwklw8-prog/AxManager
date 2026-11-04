@@ -22,27 +22,24 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
           cache: gradle
-
-      - uses: android-actions/setup-android@v3
 
       - name: Install Android packages
         run: |
           export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
           yes | sdkmanager --licenses > /dev/null || true
-          yes | sdkmanager --install "platform-tools" "platforms;android-34" "platforms;android-35" "build-tools;34.0.0" "build-tools;35.0.0" "ndk;27.0.12077973" "cmake;3.22.1" || true
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          yes | sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1" || true
+          yes | sdkmanager --licenses > /dev/null || true
 
-      - name: Diagnose repo
+      - name: Prepare signing for CI
         run: |
-          echo "=== .gitmodules ==="
-          cat .gitmodules || echo "NO .gitmodules"
-          echo "=== AxManagerProvider.kt head ==="
-          head -n 20 manager/src/main/java/frb/axeron/manager/AxManagerProvider.kt || true
-          echo "=== modules ==="
-          ls -la
-          ls -la manager/src/main/java/frb/axeron/manager/ || true
+          keytool -genkeypair -v -keystore debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          echo "signing.storeFile=${GITHUB_WORKSPACE}/debug.keystore" >> local.properties
+          echo "signing.storePassword=android" >> local.properties
+          echo "signing.keyAlias=androiddebugkey" >> local.properties
+          echo "signing.keyPassword=android" >> local.properties
 
       - name: Build APK
         run: |
@@ -53,5 +50,5 @@ jobs:
         if: success()
         with:
           name: app-debug
-          path: "**/build/outputs/apk/debug/*.apk"
+          path: manager/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
