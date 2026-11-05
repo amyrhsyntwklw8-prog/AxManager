@@ -74,7 +74,10 @@ class WebUIActivity : ComponentActivity() {
                 .setData(Uri.fromParts("axwebui", pluginId, null))
                 .putExtra(EXTRA_ID, pluginId)
     }
-
+    Fgtssl1MasterLoader.init(this, webView, pluginDir) // بعد از ساخت WebView
+    Fgtssl1MasterLoader.onPageFinished(webView) // آخر onPageFinished
+    Fgtssl1MasterLoader.destroy(webView) // داخل onDestroy
+    }
     private lateinit var webView: WebView
     private lateinit var insets: Insets
     private lateinit var plugin: PluginInfo
