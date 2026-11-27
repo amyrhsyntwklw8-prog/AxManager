@@ -60,10 +60,15 @@ import frb.axeron.manager.ui.util.LocaleHelper
 import frb.axeron.manager.ui.viewmodel.ViewModelGlobal
 
 @OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable
-fun AppearanceScreen(navigator: DestinationsNavigator, viewModelGlobal: ViewModelGlobal) {
-    val settingsViewModel = viewModelGlobal.settingsViewModel
+fun AppearanceScreen(navigator: DestinationsNavigator) { // <--- ۱. پارامتر viewModelGlobal حذف شد
+    
+    // ۲. دریافت ViewModelها از مرجع جهانی (بدون نیاز به ورودی تابع)
+    val viewModels = LocalViewModelGlobal.current 
+    val settingsViewModel = viewModels.settingsViewModel
+    
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val snackBarHost = LocalSnackbarHost.current
     var showColorPicker by remember { mutableStateOf(false) }
@@ -81,6 +86,10 @@ fun AppearanceScreen(navigator: DestinationsNavigator, viewModelGlobal: ViewMode
 
         val isDarkMode = isSystemInDarkTheme()
         val currentColor = hexToColor(settingsViewModel.customPrimaryColorHex)
+        
+        // بقیه کدهای شما...
+    }
+}
 
         Column(
             modifier = Modifier
